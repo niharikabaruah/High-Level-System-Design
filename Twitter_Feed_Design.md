@@ -37,22 +37,22 @@ Our system must be able to handle **~210,000 read requests per second.** This hi
 ```mermaid
 graph TD
     subgraph "User & Edge"
-        UserClient["User's Client (Phone/Web)"] -->|1. GET /v2/timeline| APIGateway["API Gateway<br/>(Auth & Rate Limiting)"];
+        UserClient["User's Client (Phone/Web)"] -->|1. GET /v2/timeline| APIGateway["API Gateway<br/>Auth & Rate Limiting"];
     end
 
     APIGateway -->|2. Forward Request| FeedService["Feed Generation Service"];
 
     subgraph "Core Read Path"
-        FeedService -->|3. Fetch pre-computed feed| RedisCache["<b>Redis Cache</b><br/>(User Timelines)"];
+        FeedService -->|3. Fetch pre-computed feed| RedisCache["Redis Cache<br/>User Timelines"];
         RedisCache --> FeedService;
-        FeedService -->|4. Get celebrity tweets (if any)| CassandraDB["<b>Cassandra DB</b><br/>(Tweets, Follows, Users)"];
+        FeedService -->|4. Get celebrity tweets| CassandraDB["Cassandra DB<br/>Tweets, Follows, Users"];
         CassandraDB --> FeedService;
     end
     
     FeedService -->|5. Merge feeds & return IDs| UserClient;
 
     subgraph "Background Write Path (Fan-out)"
-        OtherServices["Other Services (e.g., Post a Tweet)"] -->|New Tweet| FanoutWorker["Fan-out Workers"];
+        OtherServices["Other Services e.g., Post a Tweet"] -->|New Tweet| FanoutWorker["Fan-out Workers"];
         FanoutWorker -->|Inject tweet into follower feeds| RedisCache;
     end
 ```
